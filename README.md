@@ -1,6 +1,5 @@
 # Dijkstra project
-|Py-Versions| |Versions| |Build-Status| 
-|LICENCE| 
+
 This is a project for the Algorithms and Data Structures class lessioned at CIn-UFPE on 2020.2.
 
 ## Introduction
@@ -16,8 +15,10 @@ You will only need Python 3.5 (or above) installed.
 
 ## Usage
 There are two Python scripts that you can run simply by calling it.
-.. code:: python
-    python <script_name>.py
+
+``` python
+python <script_name>.py
+```
 
 If you want to run the pre-processing script, you will need to download the original data from http://snap.stanford.edu/data/loc-Brightkite.html and place it into Data folder.
 
