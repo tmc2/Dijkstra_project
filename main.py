@@ -263,8 +263,8 @@ def main():
         path = ''
         for user in biggest_by_leaps:
             path = user + '==>>' + path
-        print('The highest number of leaps to reach a user is: ' + str(leaps_number))
-        print('Which goes by: ' + path)
+        print('The highest number of leaps to reach a user is: ' + str(leaps_number-1)) # -1 to exclude the origin
+        print('Which goes by: ' + path[0:-4])
 
     print()
     print('Configuration done. Here are some stats:')
