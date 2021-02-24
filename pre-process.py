@@ -36,14 +36,10 @@ for user in users_info.keys():
 
     centroids[user] = (latitude_sum/len(users_info[user]), longitude_sum/len(users_info[user]))
 
-output_file = open(current_dir + '\\Data\\trated_data.txt', 'w')
+output_file = open(current_dir + '\\Data\\treated_data.txt', 'w')
 with open(current_dir + '\\Data\\Brightkite_edges.txt') as file_object:
     for line in file_object:
         node1, node2 = line[0:-2].split(' ')
-        # node1 = int(node1)
-        # node2 = int(node2)
-
-        # TODO: compute closest point between two linked users and also export this information
 
         # export using only the centroid
         if node1 != '' and node2 != '':
@@ -51,5 +47,7 @@ with open(current_dir + '\\Data\\Brightkite_edges.txt') as file_object:
                 # TODO: exclude links that points to the same local if necessary
                 distance = math.sqrt((centroids[node1][0] - centroids[node2][0])**2 + (centroids[node1][1] - centroids[node2][1])**2)
                 output_file.write( "{0} {1} {2:.3f}\n".format(node1, node2, distance) )
+
+        # TODO: use latest location instead of centroid if suitable
 
 output_file.close()
