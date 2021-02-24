@@ -1,5 +1,6 @@
 import os
 import math
+import time
 
 
 class Node:
@@ -27,7 +28,7 @@ class Node:
 
 class Graph:
     def __init__(self):
-        self.nodes = {} # i will use this as a hash table to access the nodes
+        self.nodes = {}
 
     def add(self, district1, district2, distance):
         node1 = None
@@ -48,7 +49,6 @@ class Graph:
         
         # add nodes as adjacents
         node1.add_adj(node2, distance)
-        # node2.add_adj(node1, distance) # assuming this is not a direcional graph
 
     def get_shortest_path(self, origin_str, destination_str):
         if origin_str in self.nodes and destination_str in self.nodes:
@@ -59,18 +59,18 @@ class Graph:
             dest_node = self.nodes[destination_str]
             self.dijkstra(ori_node)
             if dest_node.predecessor == None:
-                return 'inf'
+                return [], 'inf'
                 
             else:
                 current_node = dest_node
-                output = current_node.name
+                output = [current_node.name]
                 while current_node.predecessor != None:
                     current_node = current_node.predecessor
-                    output = current_node.name + ", " + output
+                    output.append(current_node.name)
 
-                return output + ", " + str(dest_node.weight)
+                return output, dest_node.weight
         else:
-            return "Invalid origin or destination"
+            return "Invalid origin or destination", 'inf'
 
     def dijkstra(self, origin):
         origin.weight = 0
@@ -79,11 +79,9 @@ class Graph:
         for key in self.nodes.keys():
             heap.add(self.nodes[key])
 
-        # print(heap.buffer)
         # heap.build() # add already calls heapify
         while not heap.is_empty():
             min_node = heap.remove(0)
-            # min_node = heap.top()
             for adj_node, distance in min_node.adj_list:
                 # Relax
                 if adj_node.weight > min_node.weight + distance:
@@ -114,6 +112,35 @@ class Graph:
         cond2 = node2 in self.nodes.keys()
         return cond1 and cond2
         
+    def get_biggest_short_path(self, origin):
+        biggest_by_leaps = None
+        leaps_number = 0
+        biggest_by_distance = None
+        distance = 0
+
+        i = 0
+        keys = list(self.nodes.keys())
+        keys.remove(origin)
+        nodes_lenght = len(self.nodes.keys())-1
+        start_time = time.time()
+        for key2 in keys:
+            i +=1
+            if i%100 == 0:
+                print('Progress: ' + str(i) + '/' + str(nodes_lenght))
+                end_time = time.time()
+                print('time: ' + str(end_time - start_time))
+                start_time = end_time
+            if origin != key2:
+                path_list, dist = self.get_shortest_path(origin, key2)
+                if dist != 'inf':
+                    if dist > distance:
+                        distance = dist
+                        biggest_by_distance = path_list
+                    if len(path_list) > leaps_number:
+                        leaps_number = len(path_list)
+                        biggest_by_leaps = path_list
+        
+        return biggest_by_distance, distance, biggest_by_leaps, leaps_number
 
 class MinHeap:
     def __init__(self, size):
@@ -211,35 +238,63 @@ def main():
                 graph.add(user1.strip(), user2.strip(), float(distance.strip()))
 
     print('Loading done.')
-    print('Please inform which type of search do you want:')
-    print('1 - Links only (all edges have 0 weight)')
-    print('2 - Use centroid (edges are weighted by the physical distance between users)')
-    user_input = input('Please inform your choice: ')
+    # print('Please inform which type of search do you want:')
+    # print('1 - Links only (all edges have weight equal to 1)')
+    # print('2 - Use centroid (edges are weighted by the physical distance between users)')
+    # user_input = input('Please inform your choice: ')
 
-    use_centroid = True # TODO: implement something that makes the edges have weight 1 only
-    if user_input == '1':
-        use_centroid = False
+    # use_centroid = True # TODO: implement something that makes the edges have weight 1 only
+    # if user_input == '1':
+    #     use_centroid = False
+
+    compute_stats = input('Do you want to check whats the largest distance? y/n?')
+    # print('(note that this may take a while as each pair of nodes is checked')
+    
+    if compute_stats == 'y':
+        origin = input('Which user do you want to check?')
+        print('Crunching some data here... please wait')
+        biggest_by_distance, distance, biggest_by_leaps, leaps_number = graph.get_biggest_short_path(origin)
+        path = ''
+        for user in biggest_by_distance:
+            path = user + '==>>' + path
+
+        print('The biggest path by distance is: ' + path[0:-4])
+        print('Total distance: ' + str(distance))
+        path = ''
+        for user in biggest_by_leaps:
+            path = user + '==>>' + path
+        print('The highest number of leaps to reach a user is: ' + str(leaps_number-1)) # -1 to exclude the origin
+        print('Which goes by: ' + path[0:-4])
 
     print()
     print('Configuration done. Here are some stats:')
-    print("Number of nodes: " + str(graph.get_num_nodes()))
-    print("Number of edges: " + str(i))
-    print("Use centroid? " + str(use_centroid))
+    print('Number of nodes: ' + str(graph.get_num_nodes()))
+    print('Number of edges: ' + str(i))
+    # print("Use centroid? " + str(use_centroid))
     print()
 
     origin = ''
     dest = ''
     while origin != 'q' and dest != 'q':
         print('Now, inform the users you want to check. Press "q" to quit.')
-        origin = input("Please inform the first user: ")
-        dest = input("Please inform the second user: ")
+        origin = input('Please inform the first user: ')
+        dest = input('Please inform the second user: ')
         if graph.is_valid_node(origin, dest):
-            print("The shortest path between {0} and {1} is:".format(origin, dest))
-            print(graph.get_shortest_path(origin.strip(),dest.strip())) # TODO: get each output individually and print in a better way
+            print('The shortest path between {0} and {1} is:'.format(origin, dest))
+            path_list, distance = graph.get_shortest_path(origin.strip(),dest.strip()) # TODO: get each output individually and print in a better way
+            if path_list != []:
+                path = ''
+                for user in path_list:
+                    path = user + '==>>' + path
+
+                print('Path to follow: ' + path[0:-4])
+                print('Total distance: ' + str(distance))
+            else:
+                print("Sorry, you can't reach " + dest + ' from ' + origin)
 
             # clean up for the next search
             print()
-            print('Wait a little while we clean things up!')
+            print('Wait a little while we clean things up!') # it may take a while on slower pcs
             graph.reset()
         elif origin != 'q' and dest != 'q':
             print('Sorry, one of the users is not valid.')
